@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables
+.env
+
+# Terraform/infrastructure
+.terraform/
+*.tfstate
+*.tfstate.backup
+
+# Dbt
+dbt_project/target/
+dbt_project/dbt_modules/
+dbt_project/logs/
+dbt_project/.user.yml
+
+# Airflow
+logs/
+airflow.cfg
+airflow-webserver.pid
+
+# Data
+data/
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
