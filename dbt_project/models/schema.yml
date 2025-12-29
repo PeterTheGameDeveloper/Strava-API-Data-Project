@@ -1,0 +1,49 @@
+version: 2
+
+sources:
+  - name: strava
+    description: "Raw activity data from Strava API ingested into S3/MinIO."
+    tables:
+      - name: activities
+        description: "Raw JSON files partitioned by date."
+        external:
+          location: "s3://raw-data/strava/activities/*.json"
+
+models:
+  - name: stg_activities
+    description: "Staging view over raw Strava activity JSON files. Casts types and renames columns."
+    columns:
+      - name: activity_id
+        description: "Unique identifier for the activity from Strava."
+        tests:
+          - unique
+          - not_null
+      - name: start_date
+        description: "UTC start time of the activity."
+      - name: activity_type
+        description: "Type of activity (Run, Ride, etc.)"
+
+  - name: fct_activities
+    description: "Fact table for activities with derived metrics like speed and pace."
+    columns:
+      - name: activity_id
+        description: "Unique identifier for the activity."
+        tests:
+          - unique
+          - not_null
+      - name: activity_type
+        description: "Type of activity (Run, Ride, etc.)"
+        tests:
+          - not_null
+      - name: distance_km
+        description: "Total distance in kilometers."
+        tests:
+          - not_null
+      - name: moving_time_minutes
+        description: "Moving time in minutes."
+        tests:
+          - not_null
+      - name: avg_speed_kmh
+        description: "Average speed in km/h."
+        tests:
+          - not_null

@@ -27,3 +27,4 @@ select
     max_heartrate,
     filename as source_filename
 from source
+qualify row_number() over (partition by activity_id order by source_filename desc) = 1
