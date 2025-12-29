@@ -1,0 +1,12 @@
+# Visualization
+streamlit
+altair<5
+duckdb
+pandas
+plotly
+
+# Data Pipelines & Utilities
+requests
+python-dotenv
+s3fs
+dbt-duckdb
