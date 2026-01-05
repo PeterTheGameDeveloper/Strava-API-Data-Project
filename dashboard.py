@@ -1,7 +1,7 @@
 import streamlit as st
 import duckdb
 import pandas as pd
-import plotly.express as px
+import altair as alt
 
 # Set page configuration
 st.set_page_config(page_title="Strava Activity Dashboard", layout="wide")
@@ -53,27 +53,42 @@ try:
     
     with col_chart_1:
         st.subheader("Distance by Activity Type")
-        fig_bar = px.bar(
-            filtered_df.groupby('activity_type')['distance_km'].sum().reset_index(),
-            x='activity_type',
-            y='distance_km',
-            color='activity_type',
-            title="Total Distance per Type"
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+        if not filtered_df.empty:
+            # Aggregate data for bar chart
+            bar_data = filtered_df.groupby('activity_type')['distance_km'].sum().reset_index()
+            
+            # Using st.bar_chart for better compatibility with this Streamlit version
+            # It expects an index for its labels
+            chart_data = bar_data.set_index('activity_type')['distance_km']
+            st.bar_chart(chart_data)
+        else:
+            st.warning("No data available for the selected filters.")
         
     with col_chart_2:
         st.subheader("Activity Timeline")
-        fig_line = px.scatter(
-            filtered_df,
-            x='start_date',
-            y='distance_km',
-            color='activity_type',
-            size='distance_km',
-            hover_data=['activity_name'],
-            title="Activities Over Time"
-        )
-        st.plotly_chart(fig_line, use_container_width=True)
+        if not filtered_df.empty:
+            # Create a clean copy and ensure numeric types
+            plot_df = filtered_df.copy()
+            plot_df['distance_km'] = pd.to_numeric(plot_df['distance_km'], errors='coerce')
+            
+            # Using Altair for the timeline as it is more robust for data-mapping
+            # in older Streamlit environments
+            chart = alt.Chart(plot_df).mark_circle(size=100, opacity=0.8, stroke='white', strokeWidth=0.5).encode(
+                x=alt.X('start_date:T', title='Activity Date'),
+                y=alt.Y('distance_km:Q', title='Distance (km)'),
+                color=alt.Color('activity_type:N', title='Type'),
+                tooltip=[
+                    alt.Tooltip('activity_name:N', title='Activity'),
+                    alt.Tooltip('start_date:T', title='Date', format='%Y-%m-%d %H:%M'),
+                    alt.Tooltip('distance_km:Q', title='Distance (km)', format='.2f')
+                ]
+            ).properties(
+                height=400
+            ).interactive()
+            
+            st.altair_chart(chart, use_container_width=True)
+        else:
+            st.info("Select activity types to view timeline.")
         
     # Data Table
     st.subheader("Raw Data")
